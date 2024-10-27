@@ -1,0 +1,6 @@
+3
+a b c
+3
+a c b
+c a b
+b a c

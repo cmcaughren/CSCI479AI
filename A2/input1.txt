@@ -1,0 +1,6 @@
+7
+a b c d e f g
+3
+c e f
+f d e
+e a g

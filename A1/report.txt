@@ -1,0 +1,106 @@
+Carolyn McAughren
+
+Assignment 1: Tube Ball Sorting App
+
+This program is incomplete. It compiles, and it can solve the first two problem examples with
+a minimal path cost, and I think it uses a good Heuristic correctly, but unfortunately I have not 
+completed debugging. When given a problem too large, it crashes, throwing a bad alloc. There are
+memory issues which I have tried very hard to get to root of, but have not solved yet.
+I am submitting what I have completed for you grade, and I am sorry it is not more robust.
+
+To compile the program:
+make
+
+To run:
+If you wish to manually enter the initial state as the prompts indicate,
+./main
+Or if you prefer, list the initial state information in a txt file and redirect it.
+E.g. in "inputfile1.txt"
+// Example input 1:
+2
+1
+YBYB
+BYBY
+
+./main < inputfile1.txt
+
+I am including an inputfile#.txt for each of the 4 example problems you have supplied us, 
+but please note it can only solve the 2 most simple.  
+
+Output to expect:
+When it finds a solution, it will output the steps needed to get to it from the initial state.
+If it fails, it will not handle this gracefully. 
+
+State Encoding:
+I have encoded states using a 2D char array. The state is a struct which contains
+a pointer to its state array, and some pointer information so that I could handle
+deletion of the dynamically allocated states. 
+
+Successor Function:
+Problem class as a function calls actions_available(current) which creates a list of actions
+which the current state could transition too. 
+It first finds a ball(on top of a tube) to move, then locates an open spot that it could be 
+moved to. It then makes a new state to represent that transition option.
+It finds all possible states that that current state could transition to and puts them in a list.
+This function is called by Agent in expand() and the list of actions is given back to that 
+function so that Agent can make a node for each possible transition state, calculate its
+priority and insert it into the priority queue.
+This function was working alright when given a smaller problem state, but when the states
+become too large, this was an unwieldly amount of nodes to handle and the program was timing out.
+I tweaked the expand to first check the priority Q to see if a possible transition state was 
+already in the Q, and to only add the new state if its priority was lower than the that already
+in the Queue. This eliminated hundreds of redundant nodes, but not enough, there was more work
+to be done in debugging these functions. This function is not optimal.  
+
+Final State Check:
+The problem solving is done in Action function find_solution. It calls expand function on
+the initial state, which calls actions_available in Problem to get a list of transitions it 
+could make, and then expand puts a node into the priority queue for each possible transition 
+state we could move to. Once these have been inputted into the Q, we return to find_solution, 
+who takes the top node from the priority queue.
+This is the node with the lowest priority. At this point, Agent checks to see if this is the
+correct state, calling problem function goalTest. If it is the goal, it ends, if not, it calls 
+expand on this node now, and the search continues.
+
+Heuristics: 
+From Agent find_solution function, it calls its expand function on the current node pulled 
+from the top of the priority queue. In expand, it gets all possible transition states it could
+move to from there, and creates a node for each. When Agent goes to make the node, it calulates
+path cost from the parent node, +1, and then adds this to the Heurisitcs for that state
+which it gets from Problem class, function heuristics(). 
+To calculate the Heuristics for a node, we first look at the bottom ball color in each tube.
+If there is a ball of the wrong color on top of the bottom ball, this is +1, with an
+additional +1 for each ball on top of that wrong color ball. I chose this heuristic because it 
+is admissable. If we think of each +1 as one predicted "move" needed before reaching goal state, 
+this is lower than or equal to the actual number of moves needed. It is an estimate of the
+path cost needed to get to the goal.
+I did try another Heuristic after, which weighted more wrong colored balls in a tube more heavily,
+but I found it needed more nodes to complete and it did not return as good of a solution, so I 
+stuck with my original Heuristic. 
+
+How and Where is it guaranteed that the most promising state is selected to expand? :
+Agent class has a Container object, a priority Q. As Agent makes nodes and calculates each ones
+priority, it inserts these into the container. The priority was implemented using a linked link,
+and the Astar insert function sorts the nodes as they are inserted, making sure that the 
+lowest priority nodes are at the top and the higher priority is lower down.
+I have diligently traced outputs of what is put into the Priority Q, and which node is selected 
+from the top as the next to be expanded, and I believe this Heuristic and the Priority Queue 
+works well. I think the issues my program has are related to my bad memory management, 
+and I am sorry I was not able to build a more efficient solution in time.  
+
+Known Bugs:
+In trying to debug, I can see that there are some issues in the display_solution function,
+and the actions_available function. I have not had luck locating where specifically I have 
+misused this memory. I found while building this program that I would fix a round of memory
+issues, then move on to try tweaking a function to help the program be more efficient, 
+which would give me another bout of errors to fix.
+
+Comments:
+I would just like to apologize that my program is not better built or more efficient. This is 
+not my best work, and I will work harder in the future to ensure that my next assignment 
+submission will not be as faulty as this.
+
+
+
+
+

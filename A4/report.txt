@@ -1,0 +1,95 @@
+A4 REPORT
+Carolyn McAughren
+558 755 906
+CSCI 479, November 7/2021
+
+
+COMPILATION AND EXECUTION:
+   Application can be compiled using 'make' and executed by entering ./main
+   The program will ask the user to enter details of the KB, but for a lengthy KB this may
+   be time consuming to enter. Using input redirection to send a text file to the program 
+   may be simplier but the file must be formatted to match expected input. 
+   The first line of the text file must contain the number of rules for the initial KB.
+   Then list each rule, with the implication and conclusions each be on a seperate line.
+   For a rule with a "" implication, leave a blank line.
+   The final line of the file should be the symbol for which you would like to query.
+   An example text file is given, "rule_input.txt" which is similar to the example KB given in
+   the assignment instructions. 
+   Run program using "./main < rule_input.txt" to run with input redirection.
+
+DATA STRUCTURES USED:
+   The data structure used to store the Knowledge base is a C++ standard template library
+   data structure "multimap". This works like map but allows a key to be inserted twice. This 
+   data structure was selected because it allows for easy pairing of the implication and
+   the conclusion of each rule, but unlike "map" which requires each key to be unique, you may
+   enter multiple keys which are the same. This is needed so that "" empty 
+   implications can be added multiple times to the KB with different conclusions for symbols
+   known to be true. This STL function was selected over a customized data structure due to
+   the ease of use, and its prebuilt functions which allow for the searching and finding of
+   key, value pairs in the Knowledge base. Behind the scenes this data structure uses
+   a binary search tree to insert and locate information when needed, so the runtimes are
+   as efficient as possible- likely much better than any custom data structure/functions
+   (and easier to implement) that I could have designed myself.
+
+INFERENCE RULES AND ALGORITHM USED:
+   Forward chaining algorithm has been used, which uses Modus Ponens to infer new truths from
+   other known truths. Modus Ponens states that if P = T and we known P -> Q, then Q = T also. 
+   In the ask function (using forward chaining) we begin with the known facts (positive 
+   literals) of the KB. Then each premise in each implication is checked against those known to
+   be true. If all the symbols on the implication side are found to be true, then the conclusion
+   must be true, and that symbol is added to the set of known facts. We continue until no 
+   further inferences can be made (KB does not entail symbol), or until the query symbol is 
+   located (KB does entail symbol).
+
+RUNTIME OF ASK FUNCTION:
+   Ask() function runs linear to the number of rules in the initial KB, as shown below.  
+   
+   Let there be m rules in the KB.
+
+   Initial set up function ask_set_up() which is called by ask() loops through each rule of the 
+   KB (m interations). Within the loop, the implication is parsed into seperate symbols, 
+   which takes some constant number of steps. 
+   Each parsed symbol is inserted into the inference map, then, each
+   implication is inserted into count, which is also a map data structure. The STL insert() 
+   function for map has a logarithmic runtime. So the runtime for both of these insertions 
+   will be much smaller than m, especially as we consider larger and larger sizes for the 
+   knowledge base. So we see the runtime of the ask_set_up function is bounded by m. 
+   Runtime so far: O(m)
+
+   Back in the ask() function, after the set up fuction returns, there is a while loop 
+   which runs once for every symbol known to be true in the KB. At most, this can be equal to 
+   the number of rules in the KB. So we are at runtime O(m + m). 
+   The function then finds and pops the top symbol off of symbol_q, which is constant time and 
+   can be ignored.
+   We then search for the current symbol in inferred using find() of the STL library data 
+   structure 'map', which runs in logarithmic time. Inferred has some n items (one for every
+   symbol in the KB), so that would log(n). As noted before, the logarithmic cost will be 
+   overpowered by m, so we choose to ignore it in big O calculation of runtime.
+   Next we mark the symbol as true in inferred (which is logn time again as it has be
+   located in inferred a second time).
+   Then, we consider each rule in KB, and if the implication is not "", we parse the 
+   implication of the rule into symbols (some constant number of steps).
+   So, this portion of the code will be executed some p times, once for every rule with
+   and implication != "". p must be less than m. If p == m, then
+   that means no rule in the KB is a known truth- then we would have never entered the first
+   loop at all, it would not be entered if symbols_q (list of known truths) was empty.
+   So this code is ran some "p less than m" times. 
+   Runtime so far is then O(m + m*p). 
+   For each p loop we will parse the implication, which takes some constant c number of steps. 
+   Each parsed symbol in the implication is then checked against the current "known true" 
+   symbol we popped off of symbols_q at the start. If it matches, we decrement count. Count is 
+   a map, so the locating the implication in count runs logm time. 
+   Lastly, if the count for the current implication has reached 0, we push the conclusion of
+   the rule onto symbols_q (logm time to look up in count again, then constant time to 
+   insert into symbols_q).
+   So our runtime is now O(m + m*(p*(logm + logm) ).
+   As previously discussed, we know m will overpower the logm in our runtime, so these are
+   ignored. The p is less than m, and so it is also dominated by m and ignored. 
+   Runtime is then O(2m). The constant 2 can be ignored, and we see that the final runtime of 
+   ask() is O(m), linear to the size of the KB, as desired.  
+
+KNOWN BUGS:
+N/A
+
+COMMENTS FOR MARKER:
+N/A

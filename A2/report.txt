@@ -1,0 +1,124 @@
+REPORT: CYCLIC ORDERING AS A CONSTRAINT SATISFACTION PROBLEM
+Assignment 2
+Carolyn McAughren, Student Number: 558 755 906
+CSCI 379, Professor Huizhu Liu
+
+
+COMPILATION AND EXECUTION:
+
+   Compile the program by entering "make".
+   Execute the program by running "./main" or "./main < inputfile.txt"
+
+ENTRY OF INITIAL STATE:
+
+   Program will prompt user to enter the details of the problem, or an input file can 
+   be redirected to the program as input.
+
+   User Entry:
+      -Program will ask user to enter the number of variables, 'n'
+      -Program will ask user to enter the variable name, n times
+      -Program will ask user how many constraints, 'm'
+      -Program will ask user to enter a variable 3 times per constraint
+
+   Input File redirection:
+      File contents should have the following format,
+
+
+      e.g. inputfile1.txt
+
+      7
+      a b c d e f g
+      3
+      c e f
+      f d e
+      e a g
+
+
+EXPECTED OUTPUT:
+   -If a solution is found, the program will output:
+      e.g.
+      "A solution has been found: 
+
+      The assignment of values to variables is as follows: 
+      a: 5 
+      b: 7 
+      c: 3 
+      d: 4 
+      e: 1 
+      f: 2 
+      g: 6"
+   
+   -If there is no solution to the problem, the program will output:
+      "There is no solution to this problem"
+
+PROBLEM STATE AND HEURISTIC USE:
+
+   Problem class, Assignment class and Agent class work together closely to find a solution.
+   Problem class makes the initial problem, but when searching for a solution Agent makes and
+   discards problem copies as it recursively searches for a solution. 
+
+   Agent makes a new empty Assignment when it begins the search in Backtracking_Search, and then 
+   updates Assignment as needed in Recursive_Backtrack. 
+   Agent calls heuristic function "select_unassigned_variable" (a function of Agent) which 
+   returns the best unassigned variable to explore next (the one with the minimum remaining 
+   values, and most constrained if there was a tie). 
+   Agent then calls heuristic function "available_variables" (a function of Problem) which 
+   returns a priority_q containing all values which var could take on, sorted with "least 
+   constraining value" on top.
+   Agent then considers each value in priority_q in turn. It assigns var = value in Assignment,
+   creates a back up of Problem, updates Problem based on updated Assignment, then recursively
+   calls itself on this updated Problem, Assignment.
+   To update the Problem, "update_available_values" of Problem class is called, which
+   compares Problems "available_variables" to Assignments "assignment". Any var already
+   assigned in assignment is removed from available_variables, any value already used in 
+   assignment is removed from any list of values in available_variables, and the remaining
+   values in available_variables are checked for inconsistencies with the constraints (any
+   values which cause a conflict are removed).
+   If a solution is found down that recursive path, that assignment is returned.
+   If Agent hits a dead end down one path, it will wind back up and remove that var = value 
+   from Assignment, restore Problem, and try the next var = value pair.
+   It will continute until all var = value pairs are exhausted. If no complete Assignment is 
+   found, an empty Assignment is returned, indicating there is no solution.    
+ 
+HEURISTIC IMPLEMETATION DETAILS:
+
+   Heuristics "Minimum Remaining Value", "Most Constrained Variable":
+      Implemented in "select_unassigned_variable" function of Agent Class.
+      This function considers each variable "var" remaining in available_variables (those 
+      which are still unassigned). It counts the number of potential values available to each
+      var to determine the var with the least number of options.
+      If there is a clear winner, this var with the "minimum remaining values" is returned.
+      In case of tie for lowest: A vector is made to hold all the variables which tied for
+      lowest remaining values (may be more than 2).
+      Function calls "most_constrained_variable" function of Agent Class on this vector of tied 
+      variables. This function then counts how many times each of these vars appear in all 
+      constraints and returns the var which appears in the constraints most often, the 
+      "most constrained variable". (If two variables tie for most constrained variable also, 
+      the first variable encountered of the tied variables will be the one explored first).
+      The most contrained variable with the least remaining values remaining is then returned.
+
+
+   Heuristic "Least Constrained Value": 
+      Implemented in "available_variables" function of Problem Class.
+      This function creates a priority queue for the var in question: 
+      The priority_q holds int pairs, 'first' will be the potential "value" that var 
+      could take on, and the 'second' int will be the "count" of how many values would 
+      be remaining in "available_values" were var to take on that value. 
+      To determine the "count", this function makes an copy of Assignment, 
+      adds in var = value, makes a Problem copy, calls "update_available_values" on this
+      problem, assignment copy and then counts how many values total appear in the Problem
+      copys available_values.
+      This value, count pair is then stored in priority_q and the problem, assignment copies
+      are discarded. 
+      Priority queue will sort these pairs, putting those with higher "count" 
+      (ie, the least constraining value) at the top of the queue. 
+      Once all values available to var have been considered entered into the priority_q,
+      the priority_q is returned. 
+
+
+
+KNOWN BUGS:
+   None.
+
+COMMENTS FOR MARKER:
+   None.
